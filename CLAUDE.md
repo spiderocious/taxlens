@@ -21,3 +21,25 @@
 - The `nx-generate` skill handles generator discovery internally - don't call nx_docs just to look up generator syntax
 
 <!-- nx configuration end-->
+
+# TaxLens
+
+A personal income tax tool for Nigerians under the Nigeria Tax Act 2025. pnpm + Nx monorepo, two apps + three packages. v1 is a single visitor-facing tool — **no accounts, no stored user data** (stateless backend / client-side compute).
+
+- Feature spec: `docs/product/mvp.md`
+- Workspace & code rules (read before writing code): `docs/rules.md`
+- How to run: `docs/run.md`
+- QA handoffs go in `docs/qas/` (templates provided)
+
+## Shape
+
+```
+apps/taxlens-web    Vite/React tool · apps/main-backend  Express stateless API
+packages/core (tax engine, types, routes) · api (client, hooks) · ui (design system)
+```
+
+## Non-negotiables
+
+- **Money is integer kobo** end-to-end. The tax engine in `packages/core/src/tax/` is the single authority for every computed number — no invented numbers; bands/reliefs trace to the NTA 2025 Fourth Schedule.
+- **`any` is banned.** Backend: `ResponseUtil` + `asyncHandler` + zod schemas, never `res.json` directly. Frontend: react-query only, `<Show>`/`<Repeat>` from meemaw (not `&&`/`.map`), `ROUTES`/`EP` constants, icons via `@icons`, `cn()` for classes.
+- New `@taxlens/ui` primitive → also add a part to the `/preview` page in `taxlens-web`.
