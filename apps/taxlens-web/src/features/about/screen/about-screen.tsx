@@ -9,14 +9,14 @@ export function AboutScreen() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
       <AppText variant="caption">module 5 — about</AppText>
-      <AppText variant="heading-1" className="mt-2 text-teal-900">
+      <AppText variant="heading-1" className="mt-2">
         Why TaxLens
       </AppText>
-      <AppText variant="body" className="mt-4 text-ink-700">
+      <AppText variant="body" className="mt-4">
         The build rationale, deliberate scope cuts and known limitations live here.
       </AppText>
       <p className="mt-8 text-sm">
-        <Link to={ROUTES.HOME} className="text-teal-900 underline">
+        <Link to={ROUTES.HOME} className="text-clay-700 underline">
           ← back home
         </Link>
       </p>

@@ -28,10 +28,10 @@ export function PalettePart() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <Repeat each={swatches}>
             {(s) => (
-              <div key={s.name} className="rounded-lg border border-teal-900/10 p-2">
+              <div key={s.name} className="rounded-lg border border-edge p-2">
                 <div className="h-12 w-full rounded-md" style={{ background: s.hex }} />
-                <div className="mt-2 font-mono text-[11px] text-ink-700">{s.name}</div>
-                <div className="font-mono text-[10px] text-slate-500">{s.hex}</div>
+                <div className="mt-2 font-mono text-[11px] text-ink-body">{s.name}</div>
+                <div className="font-mono text-[10px] text-ink-muted">{s.hex}</div>
               </div>
             )}
           </Repeat>

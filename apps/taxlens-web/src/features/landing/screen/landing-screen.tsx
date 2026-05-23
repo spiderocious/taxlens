@@ -9,18 +9,18 @@ export function LandingScreen() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
       <AppText variant="caption">TaxLens NG · estimate under NTA 2025</AppText>
-      <AppText variant="display-1" className="mt-2 text-teal-900">
+      <AppText variant="display-1" className="mt-2">
         See what you actually pay under the new tax law.
       </AppText>
-      <AppText variant="body" className="mt-4 max-w-2xl text-ink-700">
+      <AppText variant="body" className="mt-4 max-w-2xl">
         Enter your income, get your tax position under the Nigeria Tax Act 2025, and see exactly what
         changed versus the old regime. Nothing is stored.
       </AppText>
 
       <InputPathCards />
 
-      <p className="mt-12 text-sm text-slate-500">
-        <Link to={ROUTES.HOW_IT_WORKS} className="text-teal-900 underline">
+      <p className="mt-12 text-sm text-ink-muted">
+        <Link to={ROUTES.HOW_IT_WORKS} className="text-clay-700 underline">
           How this works
         </Link>{' '}
         · Estimate only, not tax advice.

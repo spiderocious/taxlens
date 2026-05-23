@@ -12,16 +12,14 @@ interface PathCardProps {
 
 function PathCard({ title, body, to, cta }: PathCardProps) {
   return (
-    <div className="flex flex-col rounded-xl border border-teal-900/10 bg-white p-5 shadow-sm">
-      <AppText variant="heading-3" className="text-teal-900">
-        {title}
-      </AppText>
-      <AppText variant="body-sm" className="mt-2 flex-1 text-ink-700">
+    <div className="flex flex-col rounded-card border border-edge bg-paper-sheet p-5">
+      <AppText variant="heading-3">{title}</AppText>
+      <AppText variant="body-sm" className="mt-2 flex-1">
         {body}
       </AppText>
       <Link
         to={to}
-        className="mt-4 inline-flex w-fit items-center rounded-md bg-teal-900 px-4 py-2 text-sm font-medium text-paper-50 hover:bg-teal-700"
+        className="mt-4 inline-flex w-fit items-center rounded-ctrl bg-clay-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-clay-600"
       >
         {cta}
       </Link>

@@ -19,7 +19,7 @@ const routes: RouteObject[] = [
 
 function PageFallback() {
   return (
-    <div role="status" className="px-6 py-16 text-sm text-slate-500">
+    <div role="status" className="px-6 py-16 text-sm text-ink-muted">
       Loading…
     </div>
   );

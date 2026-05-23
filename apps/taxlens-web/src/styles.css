@@ -8,8 +8,13 @@ body,
   height: 100%;
 }
 
+/* Direct token values (mirrors packages/ui/src/theme/index.ts) so the global
+   body style never depends on theme() resolving a nested DEFAULT key. */
 body {
-  background: theme('colors.paper.50');
-  color: theme('colors.ink.900');
-  font-family: theme('fontFamily.sans');
+  background: #f6f4ef;
+  color: #1c1b18;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'kern', 'calt';
 }

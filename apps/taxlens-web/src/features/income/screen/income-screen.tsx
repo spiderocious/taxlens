@@ -9,14 +9,14 @@ export function IncomeScreen() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
       <AppText variant="caption">module 1 — income input</AppText>
-      <AppText variant="heading-1" className="mt-2 text-teal-900">
+      <AppText variant="heading-1" className="mt-2">
         Tell us about your income
       </AppText>
-      <AppText variant="body" className="mt-4 text-ink-700">
+      <AppText variant="body" className="mt-4">
         Manual entry and bank-statement upload land here.
       </AppText>
       <p className="mt-8 text-sm">
-        <Link to={ROUTES.HOME} className="text-teal-900 underline">
+        <Link to={ROUTES.HOME} className="text-clay-700 underline">
           ← back
         </Link>
       </p>

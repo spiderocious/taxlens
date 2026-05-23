@@ -10,17 +10,17 @@ export function HowItWorksScreen() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
       <AppText variant="caption">module 5 — how this works</AppText>
-      <AppText variant="heading-1" className="mt-2 text-teal-900">
+      <AppText variant="heading-1" className="mt-2">
         Methodology
       </AppText>
-      <AppText variant="body" className="mt-4 text-ink-700">
+      <AppText variant="body" className="mt-4">
         Every band, rate and relief is sourced from the Fourth Schedule of the Nigeria Tax Act 2025.
         No invented numbers.
       </AppText>
 
       <table className="mt-8 w-full border-collapse text-sm">
         <thead>
-          <tr className="border-b border-teal-900/20 text-left">
+          <tr className="border-b border-edge-strong text-left">
             <th className="py-2">Annual taxable income</th>
             <th className="py-2">Rate</th>
           </tr>
@@ -28,7 +28,7 @@ export function HowItWorksScreen() {
         <tbody>
           <Repeat each={[...NTA_2025_BANDS]}>
             {(band) => (
-              <tr key={band.lowerKobo} className="border-b border-teal-900/10">
+              <tr key={band.lowerKobo} className="border-b border-edge-hair">
                 <td className="py-2">
                   {band.upperKobo === null
                     ? `Above ₦${(band.lowerKobo / 100).toLocaleString('en-NG')}`
@@ -42,7 +42,7 @@ export function HowItWorksScreen() {
       </table>
 
       <p className="mt-8 text-sm">
-        <Link to={ROUTES.HOME} className="text-teal-900 underline">
+        <Link to={ROUTES.HOME} className="text-clay-700 underline">
           ← back home
         </Link>
       </p>

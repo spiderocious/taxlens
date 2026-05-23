@@ -1,12 +1,13 @@
-/* Optional shared base styles. Apps can import this from `@taxlens/ui/styles.css`
-   on top of their own Tailwind layer. Tokens mirror packages/ui/src/theme. */
+/* Optional shared base styles — import via `@taxlens/ui/styles.css` on top of an
+   app's own Tailwind layer. Tokens mirror packages/ui/src/theme/index.ts. */
 
 :root {
-  --taxlens-teal: #0b3b3c;
-  --taxlens-teal-mid: #0f5c5e;
-  --taxlens-amber: #e0a106;
-  --taxlens-paper: #fbfaf7;
-  --taxlens-ink: #14181b;
+  --taxlens-paper: #f6f4ef;
+  --taxlens-paper-deep: #eeebe3;
+  --taxlens-sheet: #ffffff;
+  --taxlens-ink: #1c1b18;
+  --taxlens-clay: #c2613a;
+  --taxlens-edge: #e4e0d6;
 }
 
 html,
