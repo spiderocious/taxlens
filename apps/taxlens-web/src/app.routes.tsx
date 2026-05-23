@@ -1,16 +1,31 @@
-import { Route, Routes } from 'react-router-dom';
+import { Suspense } from 'react';
+import { useRoutes, type RouteObject } from 'react-router-dom';
 
-import { ROUTES } from '@taxlens/core';
+import { aboutRoutes } from '@features/about/about.routes.tsx';
+import { incomeRoutes } from '@features/income/income.routes.tsx';
+import { landingRoutes } from '@features/landing/landing.routes.tsx';
+import { previewRoutes } from '@features/preview/preview.routes.tsx';
+import { resultRoutes } from '@features/result/result.routes.tsx';
 
-import { HomeScreen } from '@features/health/home-screen.tsx';
-import { SimulatorScreen } from '@features/simulator/simulator-screen.tsx';
+const routes: RouteObject[] = [
+  landingRoutes,
+  incomeRoutes,
+  resultRoutes,
+  ...aboutRoutes,
+  previewRoutes,
+  // Unknown paths fall back to the landing screen.
+  { path: '*', element: landingRoutes.element },
+];
+
+function PageFallback() {
+  return (
+    <div role="status" className="px-6 py-16 text-sm text-slate-500">
+      Loading…
+    </div>
+  );
+}
 
 export function AppRoutes() {
-  return (
-    <Routes>
-      <Route path={ROUTES.HOME} element={<HomeScreen />} />
-      <Route path={ROUTES.SIMULATOR} element={<SimulatorScreen />} />
-      <Route path="*" element={<HomeScreen />} />
-    </Routes>
-  );
+  const element = useRoutes(routes);
+  return <Suspense fallback={<PageFallback />}>{element}</Suspense>;
 }
