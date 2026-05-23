@@ -1,0 +1,17 @@
+/* Optional shared base styles. Apps can import this from `@taxlens/ui/styles.css`
+   on top of their own Tailwind layer. Tokens mirror packages/ui/src/theme. */
+
+:root {
+  --taxlens-teal: #0b3b3c;
+  --taxlens-teal-mid: #0f5c5e;
+  --taxlens-amber: #e0a106;
+  --taxlens-paper: #fbfaf7;
+  --taxlens-ink: #14181b;
+}
+
+html,
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--taxlens-paper);
+  color: var(--taxlens-ink);
+}

@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: theme('colors.cream.50');
+  color: #1f2024;
+  font-family: theme('fontFamily.sans');
+}
