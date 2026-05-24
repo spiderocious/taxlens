@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 
-import { compareRegimes, ROUTES } from '@taxlens/core';
+import { compareRegimes, resultPath, ROUTES } from '@taxlens/core';
 import { cn } from '@taxlens/ui';
 import { IconStatement, IconEdit, IconAssist, IconNext } from '@icons';
 
@@ -58,8 +58,10 @@ export function InputPathCards() {
   function startSample() {
     const input = SAMPLE_INCOME.salary_earner;
     setProfileType(input.profileType);
+    // Context primes the in-app render; /result/mock is the source of truth so a
+    // refresh recomputes the sample locally (no API).
     setResult({ comparison: compareRegimes(input), source: 'sample' });
-    navigate(ROUTES.RESULT);
+    navigate(resultPath.mock());
   }
 
   return (

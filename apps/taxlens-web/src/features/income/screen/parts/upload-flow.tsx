@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Show } from 'meemaw';
 
 import type { ProcessStatus, ProfileType, StatementProcessView } from '@taxlens/core';
-import { ROUTES } from '@taxlens/core';
+import { resultPath } from '@taxlens/core';
 import {
   parseApiError,
   subscribeStatementEvents,
@@ -88,7 +88,8 @@ export function UploadFlow({ profileType }: UploadFlowProps) {
       ...(v.monthsCovered !== undefined ? { monthsCovered: v.monthsCovered } : {}),
       ...(v.periodConfidence !== undefined ? { periodConfidence: v.periodConfidence } : {}),
     });
-    navigate(ROUTES.RESULT);
+    // The code in the URL is the source of truth — a refresh refetches it.
+    navigate(resultPath.statement(v.code));
   }
 
   // ── Idle: dropzone ──────────────────────────────────────────────────────

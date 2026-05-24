@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type { ProfileType } from '@taxlens/core';
-import { ROUTES } from '@taxlens/core';
+import { resultPath } from '@taxlens/core';
 import { useComputeTax, parseApiError, ERROR_CODE } from '@taxlens/api';
 import {
   AppButton,
@@ -41,8 +41,10 @@ export function ManualForm({ profileType }: ManualFormProps) {
     const input = draftToIncome(manualDraft, profileType);
     compute.mutate(input, {
       onSuccess: (comparison) => {
+        // Context primes the render; the encoded input in the URL is the source
+        // of truth so a refresh recomputes locally (nothing is stored server-side).
         setResult({ comparison, source: 'manual' });
-        navigate(ROUTES.RESULT);
+        navigate(resultPath.manual(input));
       },
       onError: async (err) => {
         // ky throws HTTPError; pull the flat error body and key off errorCode.
