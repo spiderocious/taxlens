@@ -53,6 +53,9 @@ const EnvSchema = z.object({
   //  - LLM_STUB_CHAT: 'refuse' → refused:true; 'nonconforming' → chat output that fails
   //    the caller's schema (to exercise the repair-retry → 422 contract-failure path).
   LLM_STUB_CHAT: z.enum(['answer', 'refuse', 'nonconforming']).default('answer'),
+  //  - LLM_STUB_ANALYSIS: 'all_transfer' → analysis tags every credit as transfer and
+  //    returns grossAnnualKobo 0 (to exercise the A2 needs_review path).
+  LLM_STUB_ANALYSIS: z.enum(['income', 'all_transfer']).default('income'),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

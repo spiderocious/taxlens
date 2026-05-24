@@ -6,14 +6,20 @@ import { asyncHandler } from '@lib/http/asyncHandler.js';
 import { ResponseUtil } from '@lib/response.js';
 import { taxProcessRepository } from '@lib/mongo/tax-process.repository.js';
 
-import { CodeParamSchema, ParseStatementSchema } from './statement.schema.js';
+import { CodeParamSchema, ParseStatementSchema, RecomputeSchema } from './statement.schema.js';
 import { statementEvents } from './statement.events.js';
 import { statementService } from './statement.service.js';
 import { statementUpload } from './statement.upload.js';
 
 const router: IRouter = Router();
 
-const TERMINAL: ReadonlySet<StatementProcessView['status']> = new Set(['ready', 'failed']);
+// needs_review is terminal for the live stream — analysis is done; the next move
+// is the user reclassifying (a fresh POST /recompute), not a pipeline transition.
+const TERMINAL: ReadonlySet<StatementProcessView['status']> = new Set([
+  'ready',
+  'needs_review',
+  'failed',
+]);
 
 // POST /api/v1/statement/parse — multipart: file (PDF) + profileType.
 // Returns the 8-digit code immediately (202); the pipeline runs in-process.
@@ -88,6 +94,20 @@ router.get(
     };
 
     req.on('close', cleanup);
+  }),
+);
+
+// POST /api/v1/statement/:code/recompute — A3. The user reclassified which
+// inflows count as income; recompute gross from the selection, persist, re-run
+// the engine, and return the updated view. Keeps the AI panel grounded.
+router.post(
+  '/:code/recompute',
+  asyncHandler(async (req, res) => {
+    const { code } = CodeParamSchema.parse(req.params);
+    const { inflowIds } = RecomputeSchema.parse(req.body);
+    const view = await statementService.recompute(code, inflowIds);
+    if (!view) throw new NotFoundError('Process');
+    return ResponseUtil.ok(res, view);
   }),
 );
 

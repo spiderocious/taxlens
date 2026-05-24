@@ -318,6 +318,36 @@ Returns the current process by code. Counts as an interaction (resets idle clock
 
 ---
 
+## 6b. `POST /api/v1/statement/:code/recompute` — reclassify income (Module 1)
+
+The user reviewed the extracted credits and chose which ones count as income.
+Recomputes `grossAnnualKobo` as the **sum of the selected inflows**, re-runs the tax engine,
+**persists** the new gross + computation to the process (so a later `/ai/ask` stays grounded
+on the corrected numbers), and returns the updated view. Resolves a `needs_review` process to
+`ready`. Counts as an interaction.
+
+**Path param:** `code` — exactly 8 digits.
+**Request body** (`application/json`)
+
+```json
+{ "inflowIds": ["inflow_0", "inflow_2"] }
+```
+
+| Field | Type | Rules |
+|---|---|---|
+| `inflowIds` | string[] | ids of the inflows to count as income. `[]` is valid (= none). Each must exist on the process. Unknown fields rejected (`.strict()`). |
+
+**`200 OK`** — `data` is the updated `StatementProcessView` (`status: "ready"`, recomputed
+`grossAnnualKobo` + `computation`).
+
+| Code | `errorCode` | When |
+|---|---|---|
+| 200 | — | success |
+| 400 | 1001 | `code` not 8 digits, body not `{ inflowIds: string[] }`, or an unknown inflow id (`field: "inflowIds"`) |
+| 404 | 1004 | no process for that code |
+
+---
+
 ## 7. `POST /api/v1/ai/ask` — grounded follow-up (Module 4)
 
 Asks a question about a computed process. The server holds the context (keyed by `code`)
@@ -417,16 +447,24 @@ Out-of-scope question:
 | Field | Type | Present when |
 |---|---|---|
 | `code` | string | always |
-| `status` | `pending \| validating \| analyzing \| ready \| failed` | always |
+| `status` | `pending \| validating \| analyzing \| ready \| needs_review \| failed` | always |
 | `profileType` | enum | always |
 | `failureReason` | string | `status: failed` |
 | `bankName` | string | after gate passes |
 | `monthsCovered` | int | after gate passes |
-| `inflows` | `StatementInflow[]` | `status: ready` |
-| `grossAnnualKobo` | int | `status: ready` |
-| `computation` | `RegimeComparison` | `status: ready` |
+| `periodConfidence` | `low \| medium \| high` | with `monthsCovered` — `1`/unknown→low, `2–11`→medium, `12`→high |
+| `inflows` | `StatementInflow[]` | `ready` / `needs_review` |
+| `inflowsSumKobo` | int | with `inflows` — sum of ALL credits (income or not) |
+| `grossAnnualKobo` | int | `ready` / `needs_review` (**annualised estimate** scoped to `monthsCovered`, not a declared figure) |
+| `computation` | `RegimeComparison` | `ready` / `needs_review` |
 | `createdAt` | string (ISO 8601) | always |
 | `updatedAt` | string (ISO 8601) | always |
+
+> **`needs_review`** — analysis ran but counted **no** income (`grossAnnualKobo: 0`) while
+> `inflowsSumKobo > 0`: every credit was read as a transfer. The data is ready to show, but
+> a `0` gross with non-zero inflows means **"needs review", not "exempt"** — the client must
+> route the user to reclassify (see `POST /statement/:code/recompute`), never present an
+> exemption.
 
 ### `AskAiResult`
 `{ answer: string, citations: { section: string, snippet: string }[], refused: boolean, disclaimer: string }`
@@ -438,8 +476,10 @@ Out-of-scope question:
 ```
 POST /parse ──▶ 202 { code }
                   │ (in-process, async)
-   status: pending → validating → analyzing → ready
-                          │            │         (inflows + computation set)
+   status: pending → validating → analyzing → ready          (inflows + computation set)
+                          │            │   └──▶ needs_review  (income zeroed; user reclassifies)
+                          │            │            │
+                          │            │            └─ POST /:code/recompute ─▶ ready
                           └────────────┴──────▶ failed (failureReason set)
 ```
 
@@ -479,6 +519,7 @@ inside `lib/llm/openai-client.ts`; no route or service changes between modes.
 | upload `fail.pdf` | throws upstream error → counts as a breaker failure |
 | `/ai/ask` question containing "VAT", or `LLM_STUB_CHAT=refuse` | `refused: true` |
 | `LLM_STUB_CHAT=nonconforming` | chat returns output that fails the schema → repair-retry → `422/1008` (does NOT trip the breaker) |
+| `LLM_STUB_ANALYSIS=all_transfer` | analysis tags every credit as transfer, gross 0 → `status: needs_review` (exercises the A2 path) |
 | `LLM_STUB_FAIL_TIMES=N` | next N LLM calls throw — drives the circuit breaker open |
 | `LLM_STUB_UNCONFIGURED=true` | simulates a missing key → `503 / 1007` without unsetting the real key |
 

@@ -1,7 +1,12 @@
-import { compareRegimes, type ProfileType, type StatementInflow } from '@taxlens/core';
+import {
+  compareRegimes,
+  type ProfileType,
+  type StatementInflow,
+  type StatementProcessView,
+} from '@taxlens/core';
 import { z } from 'zod';
 
-import { UpstreamUnavailableError } from '@lib/errors.js';
+import { UpstreamUnavailableError, ValidationError } from '@lib/errors.js';
 import { llmClient } from '@lib/llm/openai-client.js';
 import { logger } from '@lib/logger.js';
 import { taxProcessRepository, type TaxProcessDoc } from '@lib/mongo/tax-process.repository.js';
@@ -40,11 +45,34 @@ avoid wasting an expensive analysis call on unusable input.`;
 const ANALYSIS_SYSTEM = `You are a financial-statement analyst for a Nigerian personal-income-tax tool.
 From the attached bank statement, extract every credit/inflow. For each, give the date
 (ISO 8601), a short description, the amount in KOBO (naira × 100, integer), and a
-classification: "salary" (regular employment income), "business" (self-employed/trade
-income), "transfer" (peer transfers, refunds, reversals), or "other".
-Then estimate grossAnnualKobo: annualise the income-bearing inflows (salary + business)
-to a full-year figure in kobo. Exclude transfers and other. Amounts are integer kobo.
-Do not compute any tax — only extract and annualise income.`;
+classification:
+- "salary": regular employment income (recurring, similar amount, payroll-like narration).
+- "business": self-employed / trade / freelance income — payments from companies or clients
+  for goods or services, including substantial or recurring credits even when the narration
+  literally says "transfer" (in Nigeria most real income arrives as a bank "transfer").
+- "transfer": ONLY clearly non-income money movement — refunds, reversals, self-transfers
+  between your own accounts, loan disbursements/repayments, and obvious small peer paybacks.
+- "other": genuinely ambiguous credits you cannot place.
+
+Classification guidance: BIAS TOWARD COUNTING credits as income. A large or recurring credit
+from a company or a person is far more likely to be income than a non-income transfer. Reserve
+"transfer" for credits you are confident are not income. When in doubt between income and
+transfer, prefer "business".
+
+Then estimate grossAnnualKobo: annualise the income-bearing inflows (salary + business) to a
+full-year figure in kobo (scale the observed income by 12 / monthsCovered). Exclude only
+"transfer" and "other". Amounts are integer kobo. Do not compute any tax — only extract,
+classify, and annualise income.`;
+
+// Statement gross has no reliefs attached (the user adds those on the result
+// screen, which recomputes via /tax/compare). One place so the pipeline and the
+// recompute endpoint agree.
+const computeFromGross = (profileType: ProfileType, grossAnnualKobo: number) =>
+  compareRegimes({
+    profileType,
+    grossAnnualKobo,
+    reliefs: { annualRentKobo: 0, pensionKobo: 0, nhisKobo: 0, nhfKobo: 0, lifeInsuranceKobo: 0 },
+  });
 
 // Builds the public view from a doc (re-exported repo helper, kept local for
 // the event payload).
@@ -121,24 +149,20 @@ export const statementService = {
       // ── tax engine — the single authority for every number (PRD) ──────────
       const process = await taxProcessRepository.findByCode(code);
       const profileType = process?.profileType ?? 'salary_earner';
-      const computation = compareRegimes({
-        profileType,
-        grossAnnualKobo: analysis.data.grossAnnualKobo,
-        // Reliefs aren't in the statement; the user adds them on the result
-        // screen, which re-computes via /tax/compare. Start at zero.
-        reliefs: {
-          annualRentKobo: 0,
-          pensionKobo: 0,
-          nhisKobo: 0,
-          nhfKobo: 0,
-          lifeInsuranceKobo: 0,
-        },
-      });
+      const grossAnnualKobo = analysis.data.grossAnnualKobo;
+      const computation = computeFromGross(profileType, grossAnnualKobo);
+
+      // A2 guard: the model extracted credits but counted none as income (gross
+      // 0 while inflows sum > 0) — every credit was read as a transfer. Do NOT
+      // present a serene "exempt". Land on needs_review so the UI routes the user
+      // to reclassify. (Persist inflows + computation so the review screen has them.)
+      const inflowsSumKobo = inflows.reduce((s, f) => s + f.amountKobo, 0);
+      const needsReview = grossAnnualKobo === 0 && inflowsSumKobo > 0;
 
       emit(
-        await taxProcessRepository.advance(code, 'ready', {
+        await taxProcessRepository.advance(code, needsReview ? 'needs_review' : 'ready', {
           inflows,
-          grossAnnualKobo: analysis.data.grossAnnualKobo,
+          grossAnnualKobo,
           computation,
           analysisResponseId: analysis.responseId,
         }),
@@ -156,5 +180,33 @@ export const statementService = {
         logger.warn({ err: advanceErr, code }, 'could not mark process failed');
       }
     }
+  },
+
+  // A3 — the user reclassified which inflows count as income. Recompute gross
+  // from the selected inflows, re-run the engine, persist (so the AI panel stays
+  // grounded on the corrected numbers), and emit. Returns the updated view, or
+  // null if the process is gone, or a ValidationError if an id is unknown.
+  async recompute(code: string, inflowIds: string[]): Promise<StatementProcessView | null> {
+    const process = await taxProcessRepository.findByCode(code);
+    if (!process) return null;
+
+    const inflows = process.inflows ?? [];
+    const known = new Set(inflows.map((f) => f.id));
+    const unknown = inflowIds.find((id) => !known.has(id));
+    if (unknown !== undefined) {
+      throw new ValidationError(`inflowIds: unknown inflow id "${unknown}"`, 'inflowIds');
+    }
+
+    const selected = new Set(inflowIds);
+    const grossAnnualKobo = inflows
+      .filter((f) => selected.has(f.id))
+      .reduce((s, f) => s + f.amountKobo, 0);
+
+    const computation = computeFromGross(process.profileType, grossAnnualKobo);
+    const updated = await taxProcessRepository.applyRecompute(code, grossAnnualKobo, computation);
+    if (!updated) return null;
+    const view = taxProcessRepository.toView(updated);
+    statementEvents.emitUpdate(code, view);
+    return view;
   },
 };

@@ -5,7 +5,7 @@ import { apiClient } from '../client.js';
 import { EP } from '../endpoints.js';
 import type { ApiResponse } from '../types/envelope.js';
 
-const TERMINAL = new Set<StatementProcessView['status']>(['ready', 'failed']);
+const TERMINAL = new Set<StatementProcessView['status']>(['ready', 'needs_review', 'failed']);
 
 // Poll fallback for the parse process. Stops refetching once terminal. Prefer
 // the SSE subscription (subscribeStatementEvents) for live updates; this is the

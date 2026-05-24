@@ -35,16 +35,22 @@ export function BandLadder({ rungs, className }: BandLadderProps) {
         <div
           key={`${rung.name}-${i}`}
           className={cn(
-            'grid grid-cols-[200px_1fr_110px_120px] items-center gap-[18px] border-b border-edge-hair px-[18px] py-[15px] last:border-b-0',
+            // Mobile: a 2-col grid — name spans the top row, rate (left) + tax
+            // (right) sit on the next row, and the bar spans full width below.
+            // sm+: the original single-row fixed grid. A fixed-width grid on a
+            // ~360px screen crushed the 1fr bar to a sliver, so it's sm-only.
+            'grid grid-cols-2 gap-x-[18px] gap-y-2 border-b border-edge-hair px-4 py-3.5 last:border-b-0',
+            'sm:grid-cols-[minmax(140px,200px)_1fr_84px_minmax(96px,120px)] sm:items-center sm:px-[18px] sm:py-[15px]',
             rung.exempt === true ? 'bg-clay-50' : '',
             rung.untouched === true ? 'opacity-50' : '',
           )}
         >
-          <div className="text-[13.5px] text-ink">
+          <div className="col-span-2 text-[13.5px] text-ink sm:col-span-1">
             {rung.name}
             <span className="mt-0.5 block font-mono text-[11px] text-ink-muted">{rung.range}</span>
           </div>
-          <div className="h-2.5 overflow-hidden rounded-full bg-paper-deep">
+          {/* Bar: full-width last row on mobile, its own column on sm+. */}
+          <div className="order-last col-span-2 h-2.5 overflow-hidden rounded-full bg-paper-deep sm:order-none sm:col-span-1">
             <span
               className={cn(
                 'block h-full rounded-full',
@@ -55,7 +61,7 @@ export function BandLadder({ rungs, className }: BandLadderProps) {
           </div>
           <div
             className={cn(
-              'text-right font-mono text-sm font-medium',
+              'font-mono text-sm font-medium sm:text-right',
               rung.untouched === true
                 ? 'text-ink-faint'
                 : rung.exempt === true

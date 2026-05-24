@@ -3,7 +3,7 @@ import type { StatementProcessView } from '@taxlens/core';
 import { _currentApiBaseUrl } from '../client.js';
 import { EP } from '../endpoints.js';
 
-const TERMINAL = new Set<StatementProcessView['status']>(['ready', 'failed']);
+const TERMINAL = new Set<StatementProcessView['status']>(['ready', 'needs_review', 'failed']);
 
 export interface SubscribeHandlers {
   onStatus: (view: StatementProcessView) => void;

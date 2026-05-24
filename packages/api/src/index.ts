@@ -16,5 +16,8 @@ export type { ParseStatementPayload, ParseStatementResult } from './hooks/use-pa
 
 export { useStatementStatus } from './hooks/use-statement-status.js';
 
+export { useRecomputeStatement } from './hooks/use-recompute-statement.js';
+export type { RecomputePayload } from './hooks/use-recompute-statement.js';
+
 export { subscribeStatementEvents } from './hooks/subscribe-statement-events.js';
 export type { SubscribeHandlers } from './hooks/subscribe-statement-events.js';

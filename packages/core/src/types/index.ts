@@ -97,7 +97,22 @@ export interface ReformPoint {
 // by an 8-digit `code` the client polls or subscribes to (SSE). See
 // docs/product/statement-pipeline.md.
 
-export type ProcessStatus = 'pending' | 'validating' | 'analyzing' | 'ready' | 'failed';
+// 'needs_review' — analysis ran but produced no taxable income (gross 0) while
+// raw inflows summed > 0: every credit was read as a transfer. The data is ready
+// to show, but the UI must NOT present a serene "exempt" — it routes the user to
+// reclassify inflows (see docs/qas/extraction-fix-spec.md, Fix A2).
+export type ProcessStatus =
+  | 'pending'
+  | 'validating'
+  | 'analyzing'
+  | 'ready'
+  | 'needs_review'
+  | 'failed';
+
+// How much to trust the annualised estimate, derived from monthsCovered:
+// low = 1 month (or unknown), medium = 2–11, high = 12. The annual figure is
+// always an estimate scoped to the months uploaded, never a declared fact.
+export type PeriodConfidence = 'low' | 'medium' | 'high';
 
 export type ChatRole = 'user' | 'assistant';
 
@@ -118,7 +133,12 @@ export interface StatementProcessView {
   failureReason?: string;
   bankName?: string;
   monthsCovered?: number;
+  /** Trust level of the annualised estimate, derived from monthsCovered. */
+  periodConfidence?: PeriodConfidence;
   inflows?: StatementInflow[];
+  /** Sum of ALL extracted inflows (income or not) — lets the UI show how much
+   *  was read even when grossAnnualKobo is 0 (the needs_review case). */
+  inflowsSumKobo?: number;
   grossAnnualKobo?: number;
   computation?: RegimeComparison;
   createdAt: string; // ISO 8601

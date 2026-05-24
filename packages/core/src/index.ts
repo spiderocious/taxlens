@@ -16,6 +16,19 @@ export {
 export type { BandDefinition } from './tax/bands.js';
 export { computeNta2025, computePitaOld, compareRegimes } from './tax/compute.js';
 
+// Statement domain helpers
+export { periodConfidenceFor } from './statement/period.js';
+
+// Result addressing — makes /result restorable on refresh
+export {
+  resultPath,
+  encodeManualInput,
+  decodeManualInput,
+  isStatementCode,
+  MOCK_CODE,
+  MANUAL_CODE,
+} from './result/result-link.js';
+
 // Helpers
 export { formatNaira, parseNairaToKobo } from './money/format-naira.js';
 export type { FormatNairaOptions } from './money/format-naira.js';

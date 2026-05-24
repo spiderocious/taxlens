@@ -10,7 +10,7 @@ import { resultRoutes } from '@features/result/result.routes.tsx';
 const routes: RouteObject[] = [
   landingRoutes,
   incomeRoutes,
-  resultRoutes,
+  ...resultRoutes,
   ...aboutRoutes,
   previewRoutes,
   // Unknown paths fall back to the landing screen.

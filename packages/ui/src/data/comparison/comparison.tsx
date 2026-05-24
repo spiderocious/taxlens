@@ -25,24 +25,33 @@ export interface OldVsNewProps {
 
 export function OldVsNew({ old, current, className }: OldVsNewProps) {
   return (
-    <div className={cn('grid grid-cols-[1fr_64px_1fr] items-stretch', className)}>
-      <div className="rounded-l-[14px] bg-paper-deep px-6 py-[22px]">
+    // Mobile: stack the two regimes with the arrow between (a 3-row grid). Two
+    // 32px mono figures don't fit side-by-side under ~420px. sm+: side by side.
+    <div
+      className={cn(
+        'grid grid-cols-1 grid-rows-[auto_auto_auto] items-stretch',
+        'sm:grid-cols-[1fr_64px_1fr] sm:grid-rows-1',
+        className,
+      )}
+    >
+      <div className="min-w-0 rounded-t-[14px] bg-paper-deep px-5 py-5 sm:rounded-l-[14px] sm:rounded-tr-none sm:px-6 sm:py-[22px]">
         <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
           {old.tag}
         </div>
-        <Amount value={old.amount} size="xl" className="my-3 text-ink-body" />
+        <Amount value={old.amount} size="xl" className="my-2 text-ink-body sm:my-3" />
         <div className="text-[12.5px] text-ink-muted">{old.sub}</div>
       </div>
-      <div className="grid place-items-center">
-        <span className="grid h-10 w-10 place-items-center rounded-full border border-edge bg-paper-sheet text-clay-600">
-          →
+      <div className="grid place-items-center py-1 sm:py-0">
+        <span className="grid h-9 w-9 place-items-center rounded-full border border-edge bg-paper-sheet text-clay-600 sm:h-10 sm:w-10">
+          <span className="sm:hidden">↓</span>
+          <span className="hidden sm:inline">→</span>
         </span>
       </div>
-      <div className="rounded-r-[14px] border border-clay-200 bg-clay-50 px-6 py-[22px]">
+      <div className="min-w-0 rounded-b-[14px] border border-clay-200 bg-clay-50 px-5 py-5 sm:rounded-r-[14px] sm:rounded-bl-none sm:px-6 sm:py-[22px]">
         <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-clay-800">
           {current.tag}
         </div>
-        <Amount value={current.amount} size="xl" className="my-3" />
+        <Amount value={current.amount} size="xl" className="my-2 sm:my-3" />
         <div className="text-[12.5px] text-ink-muted">{current.sub}</div>
       </div>
     </div>

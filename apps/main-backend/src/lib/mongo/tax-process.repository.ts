@@ -1,12 +1,13 @@
 import { randomInt } from 'node:crypto';
 
-import type {
-  ChatMessage,
-  ProcessStatus,
-  ProfileType,
-  RegimeComparison,
-  StatementInflow,
-  StatementProcessView,
+import {
+  periodConfidenceFor,
+  type ChatMessage,
+  type ProcessStatus,
+  type ProfileType,
+  type RegimeComparison,
+  type StatementInflow,
+  type StatementProcessView,
 } from '@taxlens/core';
 import type { OptionalId } from 'mongodb';
 
@@ -48,7 +49,11 @@ export interface TaxProcessDoc {
 const VALID_TRANSITIONS: Record<ProcessStatus, ProcessStatus[]> = {
   pending: ['validating', 'failed'],
   validating: ['analyzing', 'failed'],
-  analyzing: ['ready', 'failed'],
+  // analysis can land on a usable result, a needs-review result (income zeroed
+  // out while inflows exist), or fail outright.
+  analyzing: ['ready', 'needs_review', 'failed'],
+  // needs_review → ready when the user reclassifies inflows and we recompute.
+  needs_review: ['ready'],
   ready: [],
   failed: [],
 };
@@ -60,19 +65,24 @@ export const canTransition = (from: ProcessStatus, to: ProcessStatus): boolean =
 // handled by the unique index + retry in create().
 const newCode = (): string => randomInt(0, 100_000_000).toString().padStart(8, '0');
 
-const toView = (doc: TaxProcessDoc): StatementProcessView => ({
-  code: doc.code,
-  status: doc.status,
-  profileType: doc.profileType,
-  ...(doc.failureReason !== undefined ? { failureReason: doc.failureReason } : {}),
-  ...(doc.bankName !== undefined ? { bankName: doc.bankName } : {}),
-  ...(doc.monthsCovered !== undefined ? { monthsCovered: doc.monthsCovered } : {}),
-  ...(doc.inflows !== undefined ? { inflows: doc.inflows } : {}),
-  ...(doc.grossAnnualKobo !== undefined ? { grossAnnualKobo: doc.grossAnnualKobo } : {}),
-  ...(doc.computation !== undefined ? { computation: doc.computation } : {}),
-  createdAt: doc.createdAt.toISOString(),
-  updatedAt: doc.updatedAt.toISOString(),
-});
+const toView = (doc: TaxProcessDoc): StatementProcessView => {
+  const inflowsSumKobo = doc.inflows?.reduce((s, f) => s + f.amountKobo, 0);
+  return {
+    code: doc.code,
+    status: doc.status,
+    profileType: doc.profileType,
+    ...(doc.failureReason !== undefined ? { failureReason: doc.failureReason } : {}),
+    ...(doc.bankName !== undefined ? { bankName: doc.bankName } : {}),
+    ...(doc.monthsCovered !== undefined
+      ? { monthsCovered: doc.monthsCovered, periodConfidence: periodConfidenceFor(doc.monthsCovered) }
+      : {}),
+    ...(doc.inflows !== undefined ? { inflows: doc.inflows, inflowsSumKobo: inflowsSumKobo ?? 0 } : {}),
+    ...(doc.grossAnnualKobo !== undefined ? { grossAnnualKobo: doc.grossAnnualKobo } : {}),
+    ...(doc.computation !== undefined ? { computation: doc.computation } : {}),
+    createdAt: doc.createdAt.toISOString(),
+    updatedAt: doc.updatedAt.toISOString(),
+  };
+};
 
 export const taxProcessRepository = {
   toView,
@@ -151,6 +161,32 @@ export const taxProcessRepository = {
           ...(analysisResponseId !== undefined ? { analysisResponseId } : {}),
         },
       },
+    );
+  },
+
+  // User reclassified inflows → persist the corrected gross + recomputed result
+  // and land on 'ready'. Unconditional (not a pipeline transition): valid from
+  // both needs_review and an already-ready process the user re-marks. Bumps the
+  // reaper clock — reclassifying is an interaction, and keeps the AI grounded on
+  // the corrected numbers.
+  async applyRecompute(
+    code: string,
+    grossAnnualKobo: number,
+    computation: RegimeComparison,
+  ): Promise<TaxProcessDoc | null> {
+    const now = new Date();
+    return taxProcesses().findOneAndUpdate(
+      { code },
+      {
+        $set: {
+          grossAnnualKobo,
+          computation,
+          status: 'ready',
+          updatedAt: now,
+          lastInteractionAt: now,
+        },
+      },
+      { returnDocument: 'after' },
     );
   },
 

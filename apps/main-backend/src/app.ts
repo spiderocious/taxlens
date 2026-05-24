@@ -12,8 +12,6 @@ import { requestIdMiddleware } from '@middlewares/requestId.middleware.js';
 import { requestLogMiddleware } from '@middlewares/requestLog.middleware.js';
 import { ERROR_CODE, ERROR_TYPE } from '@shared/constants/error-codes.js';
 
-import { env } from './env.js';
-
 const features = [registerHealth, registerTax, registerStatement, registerAi];
 
 export const buildApp = (): express.Express => {
@@ -24,7 +22,7 @@ export const buildApp = (): express.Express => {
   app.use(helmet());
   app.use(
     cors({
-      origin: env.WEB_BASE_URL === '*' ? true : env.WEB_BASE_URL,
+      origin: "*",
       credentials: true,
     }),
   );

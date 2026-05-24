@@ -19,10 +19,12 @@ export function createApiClient(baseUrl: string): KyInstance {
   }
   const prefixUrl = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
 
-  return ky.create({
-    prefixUrl,
-    headers: { 'Content-Type': 'application/json' },
-  });
+  // Deliberately NO default Content-Type. ky sets `application/json` itself for
+  // `{ json: ... }` requests, and for a FormData body the browser must set
+  // `multipart/form-data` WITH its boundary. A pinned `application/json` default
+  // overrode that boundary on the statement upload, so the server fed multipart
+  // bytes into express.json() → 400 "Malformed JSON" (FE-BUG-01). Don't re-add it.
+  return ky.create({ prefixUrl });
 }
 
 export function configureApiClient(baseUrl: string): void {

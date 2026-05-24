@@ -43,6 +43,15 @@ const ANALYSIS_HAPPY = {
   grossAnnualKobo: 1_500_000_000,
 };
 
+// Mirrors the real Kuda bug: both credits tagged transfer, gross 0.
+const ANALYSIS_ALL_TRANSFER = {
+  inflows: [
+    { date: '2026-04-24', description: 'Stac Intercontinental Ltd transfer', amountKobo: 100_000_000, classification: 'transfer' },
+    { date: '2026-05-04', description: 'Abolarinwa Babafemi transfer', amountKobo: 60_000_000, classification: 'transfer' },
+  ],
+  grossAnnualKobo: 0,
+};
+
 const CHAT_ANSWER = {
   answer:
     'Your first ₦800,000 of taxable income is taxed at 0% under the NTA 2025 Fourth Schedule, ' +
@@ -94,6 +103,11 @@ export const stubInvoke: Transport = <T>(
   }
 
   if (tier === 'analysis') {
+    // all_transfer: every credit read as a transfer, gross 0 → exercises the A2
+    // needs_review path (income zeroed while inflows exist).
+    if (env.LLM_STUB_ANALYSIS === 'all_transfer') {
+      return Promise.resolve(result(ANALYSIS_ALL_TRANSFER, tier, code));
+    }
     return Promise.resolve(result(ANALYSIS_HAPPY, tier, code));
   }
 

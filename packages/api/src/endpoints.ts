@@ -12,6 +12,8 @@ export const EP = {
   // Poll / SSE by code. Call as functions: STATEMENT_BY_CODE('12345678').
   STATEMENT_BY_CODE: (code: string) => `api/v1/statement/${code}`,
   STATEMENT_EVENTS: (code: string) => `api/v1/statement/${code}/events`,
+  // Recompute from the user's reclassified inflow selection (keeps AI grounded).
+  STATEMENT_RECOMPUTE: (code: string) => `api/v1/statement/${code}/recompute`,
 
   // Module 4 — grounded AI follow-up
   AI_ASK: 'api/v1/ai/ask',
