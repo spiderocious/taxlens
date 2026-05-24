@@ -8,9 +8,29 @@ const EnvSchema = z.object({
   APP_BASE_URL: z.string().url(),
   WEB_BASE_URL: z.string().url(),
 
-  // Module 4 — grounded AI panel. Optional so dev/test boots without it; the
-  // ai feature checks for it at call time and degrades to a stub when absent.
-  ANTHROPIC_API_KEY: z.string().optional(),
+  // Persistence (v1.5 — stateful). The statement pipeline + chat continuation
+  // need a lifecycle; see docs/product/statement-pipeline.md.
+  MONGODB_URI: z.string().min(1),
+  MONGODB_DB_NAME: z.string().default('taxlens'),
+
+  // OpenAI — Module 1 (two-tier parse) + Module 4 (grounded follow-up).
+  // Optional so dev/test can boot without it; the LLM client degrades to a
+  // clearly-failed pipeline when absent rather than crashing the process.
+  OPENAI_API_KEY: z.string().optional(),
+  OPENAI_GATE_MODEL: z.string().default('gpt-4o-mini'),
+  OPENAI_ANALYSIS_MODEL: z.string().default('gpt-4o'),
+  OPENAI_CHAT_MODEL: z.string().default('gpt-4o'),
+
+  // Circuit breaker around the OpenAI client.
+  CIRCUIT_FAILURE_THRESHOLD: z.coerce.number().int().positive().default(5),
+  CIRCUIT_COOLDOWN_MS: z.coerce.number().int().positive().default(30_000),
+
+  // Reaper — deletes idle tax processes (and their audit) past the TTL.
+  REAPER_INTERVAL_MS: z.coerce.number().int().positive().default(300_000),
+  PROCESS_TTL_MS: z.coerce.number().int().positive().default(3_600_000),
+
+  // Upload bounds for the statement parse endpoint.
+  STATEMENT_MAX_BYTES: z.coerce.number().int().positive().default(10_485_760), // 10MB
 });
 
 export type Env = z.infer<typeof EnvSchema>;

@@ -1,19 +1,20 @@
 import type { Response } from 'express';
 
-import type { ApiError, ApiEnvelope } from '@shared/types/envelope.types.js';
+import type { ApiError, ApiSuccess } from '@shared/types/envelope.types.js';
 
+// Success → { data, meta? }. Error → flat { errorCode, errorMessage, type, field? }.
 export class ResponseUtil {
   static ok<T>(res: Response, data: T, meta?: Record<string, unknown>): Response {
-    const body: ApiEnvelope<T> = meta ? { data, meta } : { data };
+    const body: ApiSuccess<T> = meta ? { data, meta } : { data };
     return res.status(200).json(body);
   }
 
   static created<T>(res: Response, data: T): Response {
-    return res.status(201).json({ data } satisfies ApiEnvelope<T>);
+    return res.status(201).json({ data } satisfies ApiSuccess<T>);
   }
 
   static accepted<T>(res: Response, data: T): Response {
-    return res.status(202).json({ data } satisfies ApiEnvelope<T>);
+    return res.status(202).json({ data } satisfies ApiSuccess<T>);
   }
 
   static noContent(res: Response): Response {
@@ -21,6 +22,6 @@ export class ResponseUtil {
   }
 
   static error(res: Response, status: number, err: ApiError): Response {
-    return res.status(status).json({ error: err } satisfies ApiEnvelope<never>);
+    return res.status(status).json(err);
   }
 }

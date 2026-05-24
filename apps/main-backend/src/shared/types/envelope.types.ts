@@ -1,13 +1,18 @@
-import type { ErrorCode } from '../constants/error-codes.js';
+import type { ErrorCode, ErrorType } from '../constants/error-codes.js';
 
+// Flat error envelope. No nesting, no field_errors map — validation surfaces
+// ONE field at a time (see errorHandler). Clients switch on `errorCode`.
 export interface ApiError {
-  code: ErrorCode;
-  message: string;
-  field_errors?: Record<string, string[]>;
+  errorCode: ErrorCode;
+  errorMessage: string;
+  type: ErrorType;
+  // For validation errors only: the single field currently in error, so the
+  // client can highlight it. One field at a time even if several are invalid.
+  field?: string;
 }
 
-export interface ApiEnvelope<T> {
-  data?: T;
-  error?: ApiError;
+// Success envelope is unchanged: { data, meta? }.
+export interface ApiSuccess<T> {
+  data: T;
   meta?: Record<string, unknown>;
 }

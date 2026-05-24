@@ -3,26 +3,21 @@ import { Router, type IRouter } from 'express';
 import { asyncHandler } from '@lib/http/asyncHandler.js';
 import { ResponseUtil } from '@lib/response.js';
 
+import { aiService } from './ai.service.js';
 import { AskAiSchema } from './ai.schema.js';
 
 const router: IRouter = Router();
 
-const DISCLAIMER =
-  'This is an estimate, not tax advice. For complex situations, consult a tax professional.';
-
-// Module 4 — stub. Real implementation: a guarded LLM call that (1) refuses
-// out-of-scope queries, (2) cites the relevant NTA 2025 section, (3) never
-// invents a number the calculator did not produce. Contract fixed here.
+// Module 4 — grounded follow-up. Body { code, question }. The server holds the
+// computed context (keyed by code) and continues the OpenAI conversation from
+// the analysis turn. Scope-guard, citations, and the no-invented-numbers rule
+// are enforced in the system prompt; missing-key / circuit-open surface as 503.
 router.post(
   '/ask',
   asyncHandler(async (req, res) => {
-    AskAiSchema.parse(req.body);
-    return ResponseUtil.ok(res, {
-      answer: 'The grounded AI panel is not yet wired up.',
-      citations: [],
-      refused: false,
-      disclaimer: DISCLAIMER,
-    });
+    const { code, question } = AskAiSchema.parse(req.body);
+    const result = await aiService.ask(code, question);
+    return ResponseUtil.ok(res, result);
   }),
 );
 

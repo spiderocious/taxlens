@@ -10,6 +10,7 @@ import { register as registerTax } from '@features/tax/index.js';
 import { errorHandler } from '@middlewares/errorHandler.middleware.js';
 import { requestIdMiddleware } from '@middlewares/requestId.middleware.js';
 import { requestLogMiddleware } from '@middlewares/requestLog.middleware.js';
+import { ERROR_CODE, ERROR_TYPE } from '@shared/constants/error-codes.js';
 
 import { env } from './env.js';
 
@@ -38,7 +39,11 @@ export const buildApp = (): express.Express => {
   features.forEach((register) => register(app));
 
   app.use((_req, res) => {
-    res.status(404).json({ error: { code: 'not_found', message: 'Route not found' } });
+    res.status(404).json({
+      errorCode: ERROR_CODE.NOT_FOUND,
+      errorMessage: 'Route not found',
+      type: ERROR_TYPE.NOT_FOUND,
+    });
   });
 
   app.use(errorHandler);

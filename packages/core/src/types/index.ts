@@ -91,3 +91,36 @@ export interface ReformPoint {
   title: string;
   explanation: string;
 }
+
+// ── Statement parse process (Module 1, upload path — v1.5 stateful) ─────────
+// A process is created on upload, advances through the pipeline, and is keyed
+// by an 8-digit `code` the client polls or subscribes to (SSE). See
+// docs/product/statement-pipeline.md.
+
+export type ProcessStatus = 'pending' | 'validating' | 'analyzing' | 'ready' | 'failed';
+
+export type ChatRole = 'user' | 'assistant';
+
+export interface ChatMessage {
+  role: ChatRole;
+  content: string;
+  /** OpenAI response id for an assistant turn — lets the next turn continue. */
+  responseId?: string;
+  createdAt: string; // ISO 8601
+}
+
+/** Public view of a parse process — what the poll + SSE endpoints return.
+ *  Excludes server-only internals (OpenAI response ids, raw chat). */
+export interface StatementProcessView {
+  code: string;
+  status: ProcessStatus;
+  profileType: ProfileType;
+  failureReason?: string;
+  bankName?: string;
+  monthsCovered?: number;
+  inflows?: StatementInflow[];
+  grossAnnualKobo?: number;
+  computation?: RegimeComparison;
+  createdAt: string; // ISO 8601
+  updatedAt: string; // ISO 8601
+}
