@@ -19,3 +19,4 @@ build/
 # OS / editor
 .DS_Store
 *.log
+docs/qas/backend/scripts/node_modules

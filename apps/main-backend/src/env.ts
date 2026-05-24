@@ -50,7 +50,9 @@ const EnvSchema = z.object({
   //  - LLM_STUB_CHAT: 'refuse' forces refused:true on chat (also triggered by "VAT" in the question).
   LLM_STUB_UNCONFIGURED: boolFromEnv,
   LLM_STUB_FAIL_TIMES: z.coerce.number().int().nonnegative().default(0),
-  LLM_STUB_CHAT: z.enum(['answer', 'refuse']).default('answer'),
+  //  - LLM_STUB_CHAT: 'refuse' → refused:true; 'nonconforming' → chat output that fails
+  //    the caller's schema (to exercise the repair-retry → 422 contract-failure path).
+  LLM_STUB_CHAT: z.enum(['answer', 'refuse', 'nonconforming']).default('answer'),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

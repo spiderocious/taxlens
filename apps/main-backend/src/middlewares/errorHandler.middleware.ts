@@ -25,6 +25,16 @@ const pickSingleIssue = (err: ZodError): ZodIssue | undefined => {
 
 const fieldOf = (issue: ZodIssue): string => issue.path.join('.') || '_root';
 
+// body-parser tags its errors with a stable `type` string. Narrow on it without
+// `any` — we only read the `type` field if it's a string.
+const bodyParserErrorType = (err: unknown): string | undefined => {
+  if (typeof err === 'object' && err !== null && 'type' in err) {
+    const t = (err as { type: unknown }).type;
+    return typeof t === 'string' ? t : undefined;
+  }
+  return undefined;
+};
+
 // Compose a focused, human message for the single field. Zod's default message
 // is decent; we prefix the field so the UI can show it standalone.
 const messageFor = (issue: ZodIssue): string => {
@@ -72,6 +82,28 @@ export const errorHandler = (
       errorMessage: isSize ? 'file: exceeds the maximum allowed size' : `file: ${err.message}`,
       type: ERROR_TYPE.VALIDATION,
       field: 'file',
+    });
+    return;
+  }
+
+  // body-parser (express.json) throws client errors that must NOT surface as
+  // internal_error: a malformed body → SyntaxError (type "entity.parse.failed"),
+  // an over-limit body → PayloadTooLargeError (type "entity.too.large"). Both
+  // carry a `type` tag we narrow on.
+  const bodyParserType = bodyParserErrorType(err);
+  if (bodyParserType === 'entity.parse.failed') {
+    ResponseUtil.error(res, HTTP_STATUS.BAD_REQUEST, {
+      errorCode: ERROR_CODE.VALIDATION,
+      errorMessage: 'Malformed JSON in request body',
+      type: ERROR_TYPE.VALIDATION,
+    });
+    return;
+  }
+  if (bodyParserType === 'entity.too.large') {
+    ResponseUtil.error(res, HTTP_STATUS.PAYLOAD_TOO_LARGE, {
+      errorCode: ERROR_CODE.VALIDATION,
+      errorMessage: 'Request body too large',
+      type: ERROR_TYPE.VALIDATION,
     });
     return;
   }

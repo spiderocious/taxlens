@@ -16,7 +16,9 @@ const CitationSchema = z.object({
 });
 
 const AnswerSchema = z.object({
-  answer: z.string(),
+  // Non-empty: a partial/empty model turn must be treated as a contract failure
+  // (→ repair retry → 422), never returned to the user as a blank 200 answer.
+  answer: z.string().min(1),
   citations: z.array(CitationSchema),
   refused: z.boolean(),
 });

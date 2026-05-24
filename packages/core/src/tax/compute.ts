@@ -132,12 +132,12 @@ export function compareRegimes(input: IncomeInput): RegimeComparison {
   const direction: RegimeComparison['direction'] =
     netChangeKobo > 0 ? 'saves' : netChangeKobo < 0 ? 'pays_more' : 'no_change';
 
-  // Surface only reforms relevant to this profile.
-  const relevantReforms = REFORM_LIBRARY.filter((r) => {
-    if (r.id === 'cra_abolished') return true;
-    if (r.id === 'zero_band') return newRegime.taxableIncomeKobo <= 800_000 * 100 || newRegime.isExempt;
-    return true;
-  });
+  // Every reform here applies to all profiles under NTA 2025 — including the
+  // tax-free first ₦800,000 band, which is a real benefit to high earners too
+  // (it lowers everyone's effective rate), so it is surfaced unconditionally.
+  // (Was previously gated to taxable income ≤ ₦800k, which hid it from exactly
+  // the earners for whom it's a meaningful reassurance — see QA OBS-01.)
+  const relevantReforms = REFORM_LIBRARY;
 
   return { newRegime, oldRegime, netChangeKobo, direction, relevantReforms };
 }

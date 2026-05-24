@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 import { zodTextFormat } from 'openai/helpers/zod';
 import type { z } from 'zod';
 
-import { UpstreamUnavailableError } from '@lib/errors.js';
+import { ProcessingError, UpstreamUnavailableError } from '@lib/errors.js';
 import { requestContext } from '@lib/http/requestContext.js';
 import { logger } from '@lib/logger.js';
 import {
@@ -19,6 +19,16 @@ import { CircuitBreaker, CircuitOpenError } from './circuit-breaker.js';
 import { stubInvoke } from './stub-transport.js';
 
 const breaker = new CircuitBreaker(env.CIRCUIT_FAILURE_THRESHOLD, env.CIRCUIT_COOLDOWN_MS);
+
+// The model answered, but its structured output didn't conform to the caller's
+// schema (or was empty). This is a CONTRACT failure, not an outage — it must not
+// become a 503 or count against the circuit breaker. Internal to this module.
+class LlmContractError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'LlmContractError';
+  }
+}
 
 let _client: OpenAI | null = null;
 const getClient = (): OpenAI => {
@@ -135,12 +145,16 @@ async function runStructured<T>(params: StructuredCallParams<T>): Promise<Struct
       .catch((e: unknown) => logger.error({ err: e, code }, 'failed to write llm_audit'));
   };
 
-  try {
+  // One transport round-trip + schema validation. A schema/empty-output failure
+  // throws LlmContractError (NOT a network failure): the breaker.run already
+  // succeeded, so it does not count against the breaker, and the caller can
+  // decide to retry or surface a 422 instead of a 503.
+  const attempt = async (): Promise<StructuredCallResult<T>> => {
     const { result, stateAtCall } = await breaker.run(() => transport(params));
 
     if (result.parsed === null || result.parsed === undefined) {
       audit(stateAtCall, { error: 'model returned no parseable output' });
-      throw new UpstreamUnavailableError('AI returned an unexpected response');
+      throw new LlmContractError('model returned no parseable output');
     }
 
     // Validate against the caller's schema — same gate the real output_parsed
@@ -148,28 +162,60 @@ async function runStructured<T>(params: StructuredCallParams<T>): Promise<Struct
     const validated = schema.safeParse(result.parsed);
     if (!validated.success) {
       audit(stateAtCall, { error: 'output failed schema validation' });
-      throw new UpstreamUnavailableError('AI returned an unexpected response');
+      throw new LlmContractError('output failed schema validation');
     }
 
     audit(stateAtCall, { inputTokens: result.inputTokens, outputTokens: result.outputTokens });
     return { data: validated.data, responseId: result.responseId };
+  };
+
+  try {
+    return await attempt();
   } catch (err) {
-    if (err instanceof CircuitOpenError) {
-      audit('open', { error: 'circuit open' });
-      throw new UpstreamUnavailableError(
-        'AI service is temporarily unavailable',
-        Math.ceil(err.retryAfterMs / 1000),
-      );
+    // A model that returned a non-conforming/empty structured output is NOT an
+    // outage. Repair-retry once (a fresh call often conforms), then give up with
+    // a processing error — never a 503, and never counted as a breaker failure.
+    if (err instanceof LlmContractError) {
+      logger.warn({ code, tier, reason: err.message }, 'llm output non-conforming — repair retry');
+      try {
+        return await attempt();
+      } catch (retryErr) {
+        if (retryErr instanceof LlmContractError) {
+          logger.error({ code, tier }, 'llm output non-conforming after retry');
+          throw new ProcessingError(
+            'The AI could not produce a grounded answer. Please rephrase and try again.',
+          );
+        }
+        return handleTransportError(retryErr, audit, code, tier);
+      }
     }
-    if (err instanceof UpstreamUnavailableError) {
-      audit(breaker.getState(), { error: err.message });
-      throw err;
-    }
-    const message = err instanceof Error ? err.message : String(err);
-    audit(breaker.getState(), { error: message });
-    logger.error({ err, code, tier }, 'llm call failed');
-    throw new UpstreamUnavailableError('AI service call failed');
+    return handleTransportError(err, audit, code, tier);
   }
+}
+
+// Network / circuit / unknown transport failures → these ARE outages (503), and
+// (for non-circuit cases) already counted against the breaker inside breaker.run.
+function handleTransportError(
+  err: unknown,
+  audit: (s: CircuitState, e: { error?: string }) => void,
+  code: string,
+  tier: LlmTier,
+): never {
+  if (err instanceof CircuitOpenError) {
+    audit('open', { error: 'circuit open' });
+    throw new UpstreamUnavailableError(
+      'AI service is temporarily unavailable',
+      Math.ceil(err.retryAfterMs / 1000),
+    );
+  }
+  if (err instanceof UpstreamUnavailableError) {
+    audit(breaker.getState(), { error: err.message });
+    throw err;
+  }
+  const message = err instanceof Error ? err.message : String(err);
+  audit(breaker.getState(), { error: message });
+  logger.error({ err, code, tier }, 'llm call failed');
+  throw new UpstreamUnavailableError('AI service call failed');
 }
 
 // Single entry point for every model call. Wraps the breaker, records audit,

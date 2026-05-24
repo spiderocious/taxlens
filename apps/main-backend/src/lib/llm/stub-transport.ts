@@ -97,7 +97,14 @@ export const stubInvoke: Transport = <T>(
     return Promise.resolve(result(ANALYSIS_HAPPY, tier, code));
   }
 
-  // 4. Chat — refuse on "VAT"/out-of-scope marker or via env.
+  // 4. Chat — non-conforming output (simulates the real gpt-4o drift QA found):
+  // returns a shape that fails the caller's schema, exercising the repair-retry
+  // → 422 contract-failure path (the shell, not the stub, decides the outcome).
+  if (env.LLM_STUB_CHAT === 'nonconforming') {
+    return Promise.resolve(result({ wrong: 'shape', answer: '' }, tier, code));
+  }
+
+  // refuse on "VAT"/out-of-scope marker or via env.
   const wantsRefuse = env.LLM_STUB_CHAT === 'refuse' || /\bvat\b/i.test(user);
   const answer = wantsRefuse ? CHAT_REFUSE : CHAT_ANSWER;
   // Thread continuity: a real chat turn continues from the analysis turn. We

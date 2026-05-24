@@ -71,7 +71,8 @@ invalid returns `grossAnnualKobo` first ("g" < "p" at the same depth).
 
 - **Request ID:** every response carries `x-request-id` (echoed from the request or generated). Send your own `x-request-id` to correlate logs.
 - **CORS:** allowed origin is `WEB_BASE_URL` (default `http://localhost:5173`).
-- **Body limit:** JSON bodies are capped at 1 MB. PDF uploads are capped at `STATEMENT_MAX_BYTES` (default 10 MB) via multipart.
+- **Body limit:** JSON bodies are capped at 1 MB — over that → `413 / 1001`. A malformed JSON body → `400 / 1001` (not a 500). PDF uploads are capped at `STATEMENT_MAX_BYTES` (default 10 MB) via multipart.
+- **Unknown fields:** request bodies are strict — an unexpected/misspelled field → `400 / 1001`.
 
 ---
 
@@ -366,10 +367,16 @@ Out-of-scope question:
 | Code | `errorCode` | When |
 |---|---|---|
 | 200 | — | success (including a polite refusal — `refused: true`) |
-| 400 | 1001 | invalid body (bad `code` or empty/too-long `question`) |
+| 400 | 1001 | invalid body (bad `code`, empty/too-long `question`, or unknown field) |
 | 404 | 1004 | no process for that code |
-| 503 | 1007 | OpenAI unavailable, circuit open, or `OPENAI_API_KEY` missing. May carry `Retry-After`. |
+| 422 | 1008 | the model answered but couldn't produce a grounded, schema-conforming response (after one repair retry) — rephrase and retry. **Not** an outage; does not trip the breaker. |
+| 503 | 1007 | OpenAI genuinely unavailable, circuit open, or `OPENAI_API_KEY` missing. May carry `Retry-After`. |
 | 500 | 1009 | unexpected error |
+
+> **Contract vs. outage:** a model turn that fails the response schema (or comes back
+> empty) is retried once, then surfaced as `422/1008` — distinct from a real upstream
+> outage (`503/1007`). This keeps non-conforming output from being mistaken for downtime
+> and from spuriously opening the circuit breaker.
 
 ---
 
@@ -471,6 +478,7 @@ inside `lib/llm/openai-client.ts`; no route or service changes between modes.
 | upload `reject.pdf` | gate returns invalid → `status: failed` (`"Not a usable Nigerian bank statement"`) |
 | upload `fail.pdf` | throws upstream error → counts as a breaker failure |
 | `/ai/ask` question containing "VAT", or `LLM_STUB_CHAT=refuse` | `refused: true` |
+| `LLM_STUB_CHAT=nonconforming` | chat returns output that fails the schema → repair-retry → `422/1008` (does NOT trip the breaker) |
 | `LLM_STUB_FAIL_TIMES=N` | next N LLM calls throw — drives the circuit breaker open |
 | `LLM_STUB_UNCONFIGURED=true` | simulates a missing key → `503 / 1007` without unsetting the real key |
 
