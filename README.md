@@ -32,7 +32,7 @@ cp apps/main-backend/.env.example apps/main-backend/.env
 cp apps/taxlens-web/.env.example  apps/taxlens-web/.env
 
 # Two terminals:
-pnpm -F @taxlens/main-backend dev    # http://localhost:8081
+pnpm -F @taxlens/main-backend dev    # http://localhost:8090
 pnpm -F @taxlens/taxlens-web dev     # http://localhost:5173
 ```
 

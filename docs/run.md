@@ -6,7 +6,7 @@ A pnpm + Nx monorepo. Every app lives under `apps/`; every shared library under 
 
 - Node.js **>= 20**
 - pnpm **>= 9.15** (`brew install pnpm` or `corepack enable && corepack prepare pnpm@9.15.9 --activate`)
-- Ports free locally: **8081** (main-backend), **5173** (taxlens-web), **4173** (vite preview)
+- Ports free locally: **8090** (main-backend), **5173** (taxlens-web), **4173** (vite preview)
 
 ## First-time setup
 
@@ -22,14 +22,14 @@ cp apps/taxlens-web/.env.example  apps/taxlens-web/.env
 
 | App            | Stack        | Dev port | Prod cmd               | Notes                                             |
 | -------------- | ------------ | -------- | ---------------------- | ------------------------------------------------- |
-| `main-backend` | Express      | 8081     | `pnpm start`           | Stateless HTTP API (`/api/v1/*`) — no DB, no auth |
+| `main-backend` | Express      | 8090     | `pnpm start`           | Stateless HTTP API (`/api/v1/*`) — no DB, no auth |
 | `taxlens-web`  | Vite/React   | 5173     | `pnpm start` (preview) | The tool: input → result → comparison → AI panel  |
 
 ## Running
 
 ```bash
 # Filter form (run from anywhere)
-pnpm -F @taxlens/main-backend dev      # 8081
+pnpm -F @taxlens/main-backend dev      # 8090
 pnpm -F @taxlens/taxlens-web dev       # 5173 → calls main-backend
 
 # Or via Nx (project name = unscoped)
@@ -59,7 +59,7 @@ Nx caches results — subsequent runs without source changes finish in seconds.
 ## Health check
 
 ```bash
-curl http://localhost:8081/api/v1/health
+curl http://localhost:8090/api/v1/health
 ```
 
 ## Troubleshooting

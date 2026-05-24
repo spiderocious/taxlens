@@ -6,7 +6,7 @@ import { configureApiClient } from '@taxlens/api';
 import { App } from './app.tsx';
 import './styles.css';
 
-const baseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8081';
+const baseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8090';
 configureApiClient(baseUrl);
 
 const rootEl = document.getElementById('root');

@@ -9,7 +9,7 @@ const boolFromEnv = z
 
 const EnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  PORT: z.coerce.number().default(8081),
+  PORT: z.coerce.number().default(8090),
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error']).default('info'),
 
   APP_BASE_URL: z.string().url(),

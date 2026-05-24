@@ -1,6 +1,6 @@
 # TaxLens API — main-backend
 
-**Base URL:** `http://localhost:8081`
+**Base URL:** `http://localhost:8090`
 **Prefix:** all endpoints live under `/api/v1`
 **Content type:** `application/json` (except `POST /statement/parse` → `multipart/form-data`, and `GET /statement/:code/events` → `text/event-stream`)
 **Auth:** none. TaxLens has no accounts. State is keyed by an opaque 8-digit `code`.
@@ -209,7 +209,7 @@ in the background. Track it via SSE (§5) or polling (§6).
 | `profileType` | text | `salary_earner` \| `freelancer` \| `mixed` |
 
 ```bash
-curl -X POST http://localhost:8081/api/v1/statement/parse \
+curl -X POST http://localhost:8090/api/v1/statement/parse \
   -F 'file=@statement.pdf;type=application/pdf' \
   -F 'profileType=salary_earner'
 ```

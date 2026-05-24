@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-24
 **Build:** Typecheck ✅ · Lint ✅ · Tests ⚠️ (none yet — see Out of Scope)
-**Base URL:** `http://localhost:8081/api/v1`
+**Base URL:** `http://localhost:8090/api/v1`
 
 > **Scope change:** this phase promotes the backend from stateless v1 to a **stateful
 > v1.5** backed by MongoDB (see `docs/product/statement-pipeline.md`). No accounts, no
@@ -41,7 +41,7 @@ Quick reference for steering the stub:
 - A sample **Nigerian bank-statement PDF** (valid case) and a **non-statement PDF** + a
   non-PDF file (invalid cases).
 
-Run: `pnpm -F @taxlens/main-backend dev` (port 8081).
+Run: `pnpm -F @taxlens/main-backend dev` (port 8090).
 
 ---
 

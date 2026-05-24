@@ -2,7 +2,7 @@
 
 **Date:** YYYY-MM-DD
 **Build:** Typecheck ✅ · Lint ✅ · Tests ✅
-**Base URL:** `http://localhost:8081/api/v1`
+**Base URL:** `http://localhost:8090/api/v1`
 
 > TaxLens v1 is stateless — no accounts, no DB, no auth header. Drop the seed-users / RBAC sections unless the feature introduces them.
 
