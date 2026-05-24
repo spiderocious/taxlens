@@ -37,22 +37,6 @@ The tax engine in `@taxlens/core` is the single authority for every computed num
 | Missing required field | 400 `validation_error` with `field_errors` |
 | Unknown route | 404 `not_found` |
 
----
-
-## Error Response Shape
-
-```json
-{ "error": { "code": "validation_error", "message": "...", "field_errors": { "grossAnnualKobo": ["..."] } } }
-```
-
-| HTTP | `error.code` | when |
-|------|-------------|------|
-| 400 | `validation_error` | invalid body |
-| 404 | `not_found` | unknown route |
-| 500 | `internal` | unhandled error |
-
----
-
 ## Out of Scope
 
 - [ ] [explicitly deferred endpoints]
