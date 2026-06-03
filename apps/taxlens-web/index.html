@@ -1,15 +1,147 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-NG">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TaxLens NG</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#F6F4EF" />
+
+    <!-- Primary meta -->
+    <title>TaxLens NG — Nigeria Tax Act 2025 calculator & old-vs-new comparison</title>
+    <meta
+      name="description"
+      content="Free Nigeria personal income tax calculator for 2026. See your PAYE under the Nigeria Tax Act 2025, compare it to the old regime, and find out exactly what changes for you. No account, nothing stored."
+    />
+    <meta
+      name="keywords"
+      content="Nigeria tax calculator, NTA 2025, Nigeria Tax Act 2025, PAYE 2026, personal income tax Nigeria, tax reform Nigeria, rent relief Nigeria, CRA replaced, Nigeria payroll tax, salary tax calculator Nigeria"
+    />
+    <meta name="author" content="TaxLens NG" />
+    <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1" />
+    <link rel="canonical" href="https://taxlens.ng/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TaxLens NG" />
+    <meta property="og:locale" content="en_NG" />
+    <meta property="og:url" content="https://taxlens.ng/" />
+    <meta property="og:title" content="TaxLens NG — see what you actually pay under the new tax law" />
+    <meta
+      property="og:description"
+      content="Compute your 2026 personal income tax under the Nigeria Tax Act 2025 and see what changed versus the old PITA regime. Estimate in seconds — no account, nothing stored."
+    />
+    <meta property="og:image" content="https://taxlens.ng/og-image.svg" />
+    <meta property="og:image:alt" content="TaxLens NG — Nigeria tax calculator for the Nigeria Tax Act 2025" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="TaxLens NG — Nigeria Tax Act 2025 calculator" />
+    <meta
+      name="twitter:description"
+      content="Compute your 2026 PAYE under the Nigeria Tax Act 2025 and see what changed for you."
+    />
+    <meta name="twitter:image" content="https://taxlens.ng/og-image.svg" />
+    <meta name="twitter:image:alt" content="TaxLens NG — Nigeria tax calculator for the NTA 2025" />
+
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+
+    <!-- Fonts (preconnect first, then the stylesheet). The actual woff2 files
+         are fetched from Google Fonts so we can't preload them by URL safely. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
+
+    <!-- JSON-LD: Organization -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "TaxLens NG",
+        "url": "https://taxlens.ng/",
+        "logo": "https://taxlens.ng/favicon.svg",
+        "description": "Free Nigeria personal income tax calculator for 2026 under the Nigeria Tax Act 2025.",
+        "areaServed": { "@type": "Country", "name": "Nigeria" }
+      }
+    </script>
+
+    <!-- JSON-LD: WebApplication (the tool itself) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "TaxLens NG",
+        "url": "https://taxlens.ng/",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Any (browser)",
+        "inLanguage": "en-NG",
+        "description": "Calculate your Nigerian personal income tax for 2026 under the Nigeria Tax Act 2025 and compare to the pre-2026 PITA regime.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "NGN" },
+        "featureList": [
+          "Estimate your 2026 personal income tax under the Nigeria Tax Act 2025",
+          "Old-vs-new regime comparison (PITA vs NTA 2025)",
+          "Band-by-band breakdown — the first ₦800,000 is tax-free",
+          "Upload a bank statement (PDF) to extract inflows",
+          "Grounded AI follow-up about your numbers"
+        ]
+      }
+    </script>
+
+    <!-- JSON-LD: FAQPage — mirrors the FAQ on the page itself -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "When does the Nigeria Tax Act 2025 take effect?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The Nigeria Tax Act 2025 takes effect on 1 January 2026. Personal income tax for the 2026 tax year is computed under its new bands and reliefs."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What changed under the Nigeria Tax Act 2025?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The first ₦800,000 of taxable income is tax-free, the bands above it are progressive from 15% to 25%, and the old Consolidated Relief Allowance is replaced by a rent relief of 20% of rent paid, capped at ₦500,000. Statutory deductions for pension, NHIS, NHF and life insurance still apply."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is TaxLens free? Do I need an account?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "TaxLens is free, requires no account and stores no personal data. Your figures are used once to compute an estimate and then discarded."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is the TaxLens estimate tax advice?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Every figure is an estimate under the Nigeria Tax Act 2025 and is not tax advice. For complex situations, please consult a registered tax professional."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I compute my tax from a bank statement?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Upload a Nigerian bank statement PDF (3–12 months); TaxLens reads the credits, classifies them as salary, business or transfer, and lets you confirm which count as income before computing your position under the NTA 2025."
+            }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
