@@ -9,7 +9,7 @@ import {
   type StatementInflow,
   type StatementProcessView,
 } from '@taxlens/core';
-import type { OptionalId } from 'mongodb';
+import type { OptionalId, UpdateFilter } from 'mongodb';
 
 import { ConflictError } from '@lib/errors.js';
 
@@ -59,7 +59,9 @@ const VALID_TRANSITIONS: Record<ProcessStatus, ProcessStatus[]> = {
 };
 
 export const canTransition = (from: ProcessStatus, to: ProcessStatus): boolean =>
-  VALID_TRANSITIONS[from].includes(to);
+  // VALID_TRANSITIONS has an entry for every ProcessStatus, but
+  // noUncheckedIndexedAccess types the lookup as possibly undefined.
+  (VALID_TRANSITIONS[from] ?? []).includes(to);
 
 // 8-digit numeric code, zero-padded. randomInt is uniform; collisions are
 // handled by the unique index + retry in create().
@@ -151,17 +153,18 @@ export const taxProcessRepository = {
     analysisResponseId?: string,
   ): Promise<void> {
     const now = new Date();
-    await taxProcesses().updateOne(
-      { code },
-      {
-        $push: { chatMessages: { $each: messages } },
-        $set: {
-          updatedAt: now,
-          lastInteractionAt: now,
-          ...(analysisResponseId !== undefined ? { analysisResponseId } : {}),
-        },
+    // mongo's PushOperator typing is over-strict for fields declared as
+    // optional arrays (chatMessages?: ChatMessage[]). Use UpdateFilter so the
+    // $push narrowing is correctly applied.
+    const update: UpdateFilter<TaxProcessDoc> = {
+      $push: { chatMessages: { $each: messages } },
+      $set: {
+        updatedAt: now,
+        lastInteractionAt: now,
+        ...(analysisResponseId !== undefined ? { analysisResponseId } : {}),
       },
-    );
+    };
+    await taxProcesses().updateOne({ code }, update);
   },
 
   // User reclassified inflows → persist the corrected gross + recomputed result

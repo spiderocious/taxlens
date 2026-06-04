@@ -20,3 +20,4 @@ build/
 .DS_Store
 *.log
 docs/qas/backend/scripts/node_modules
+.claude

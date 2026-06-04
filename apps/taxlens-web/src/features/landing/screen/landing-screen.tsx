@@ -9,14 +9,6 @@ import { InputPathCards } from './parts/input-path-cards.tsx';
 import { FeatureStrip } from './parts/feature-strip.tsx';
 import { FaqSection } from './parts/faq-section.tsx';
 
-/**
- * Landing — the SEO entry point. Structure:
- *  <header>  hero with the keyword-loaded H1 + lede
- *  cards     the three input paths (primary CTAs)
- *  features  what TaxLens actually does (H2 + 3 sub-features)
- *  trust     short internal-link row to /how-it-works + /about
- *  FAQ       five Q&As that mirror the FAQPage JSON-LD in index.html
- */
 export function LandingScreen() {
   return (
     <AppShell activeLink={ROUTES.HOME}>
