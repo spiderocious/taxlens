@@ -1,11 +1,7 @@
-import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
 
 import { ROUTES } from '@taxlens/core';
-
-const LandingScreen = lazy(() =>
-  import('./screen/landing-screen.tsx').then((m) => ({ default: m.LandingScreen })),
-);
+import { LandingScreen } from './screen/landing-screen.tsx';
 
 export const landingRoutes: RouteObject = {
   path: ROUTES.HOME,

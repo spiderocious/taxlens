@@ -1,11 +1,7 @@
-import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
-
 import { ROUTES } from '@taxlens/core';
+import { PreviewScreen } from './screen/preview-screen.tsx';
 
-const PreviewScreen = lazy(() =>
-  import('./screen/preview-screen.tsx').then((m) => ({ default: m.PreviewScreen })),
-);
 
 export const previewRoutes: RouteObject = {
   path: ROUTES.PREVIEW,
