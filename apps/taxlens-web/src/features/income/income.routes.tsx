@@ -1,11 +1,7 @@
-import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
 
 import { ROUTES } from '@taxlens/core';
-
-const IncomeScreen = lazy(() =>
-  import('./screen/income-screen.tsx').then((m) => ({ default: m.IncomeScreen })),
-);
+import { IncomeScreen } from './screen/income-screen.tsx';
 
 export const incomeRoutes: RouteObject = {
   path: ROUTES.INCOME,

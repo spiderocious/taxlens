@@ -1,11 +1,8 @@
-import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
 
 import { ROUTES } from '@taxlens/core';
+import { ResultScreen } from './screen/result-screen.tsx';
 
-const ResultScreen = lazy(() =>
-  import('./screen/result-screen.tsx').then((m) => ({ default: m.ResultScreen })),
-);
 
 // /result/:code where :code ∈ { mock | manual | <8-digit statement code> }.
 // The param is the source of truth so a refresh restores the result. A bare
