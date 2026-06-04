@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@features/*": ["features/*"],
+      "@lib/*": ["lib/*"],
+      "@middlewares/*": ["middlewares/*"],
+      "@shared/*": ["shared/*"],
+      "@taxlens/core": ["../../../packages/core/src/index.ts"],
+      "@taxlens/core/*": ["../../../packages/core/src/*"]
+    }
+  }
+}
